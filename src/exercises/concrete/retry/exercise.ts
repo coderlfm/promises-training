@@ -3,4 +3,21 @@ type Context = {
 };
 
 export default ({ getData }: Context) =>
-  async (data: string) => {};
+  async (data: string) => {
+    let retries = 0;
+    const errors: Array<unknown> = [];
+    
+    while (true) {
+      try {
+        return await getData(data);
+      } catch (err) {
+        errors.push(err);
+
+        if (retries === 3) {
+          throw errors;
+        }
+
+        retries++;
+      }
+    }
+  };
