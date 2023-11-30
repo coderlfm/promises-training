@@ -5,10 +5,10 @@ type Context = {
 
 export default ({ fetchData, setData }: Context) => {
   let running = false;
-  
+
   return async (input: string) => {
 
-    if (running) return;
+    if (running) return; 
 
     running = true;
 
