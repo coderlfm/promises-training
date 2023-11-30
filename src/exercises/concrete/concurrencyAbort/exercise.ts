@@ -4,5 +4,18 @@ type Context = {
 };
 
 export default ({ fetchData, setData }: Context) => {
-  return async (input: string) => {};
+  let running = false;
+  
+  return async (input: string) => {
+
+    if (running) return;
+
+    running = true;
+
+    const res = await fetchData(input);
+
+    setData(res);
+
+    running = false;
+  };
 };
