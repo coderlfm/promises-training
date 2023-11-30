@@ -4,33 +4,64 @@ type Context = {
   postData: (data: string) => Promise<string>;
 };
 
+// export default ({ postData }: Context) =>
+//   (list: Array<string>) => {
+//     let runningCount = 0,
+//       nextIndex = 0;
+
+//     const results: Array<string> = [];
+
+//     const schedule = () => {
+//       if (nextIndex + 1 > list.length) return;
+
+//       if (runningCount >= 5) return;
+
+//       runningCount++;
+
+//       const curIndex = nextIndex;
+//       postData(list[curIndex]).then((res) => {
+//         results[curIndex] = res;
+//         runningCount--;
+//         schedule();
+//       });
+
+//       nextIndex++;
+//       schedule();
+//     };
+
+//     schedule();
+
+//     return results;
+//   };
+
 export default ({ postData }: Context) =>
   (list: Array<string>) => {
-    let runningCount = 0,
-      nextIndex = 0;
+    let nextIndex = 5;
 
-    const results: Array<string> = [];
+    const runList = list.map((data) => {
+      const { promise, resolver } = promiseWithResolvers();
 
-    const schedule = () => {
-      if (nextIndex + 1 > list.length) return;
+      // 这是给每一个请求设置一个开关。
+      return { data, promise, resolver };
+    });
 
-      if (runningCount >= 5) return;
+    const results = Promise.all(
+      runList.map(async (item) => {
+        // 等待开关
+        await item.promise;
 
-      runningCount++;
+        // 这里直接发送请求，并且await，不用担心会阻塞，因为当前函数已经全部执行过了。都在等待接口发送
+        const res = await postData(item.data);
 
-      const curIndex = nextIndex;
-      postData(list[curIndex]).then((res) => {
-        results[curIndex] = res;
-        runningCount--;
-        schedule();
-      });
+        // 打开下一个索引的开关
+        runList[nextIndex++]?.resolver();
 
-      nextIndex++;
-      schedule();
-    };
-
-    schedule();
+        return res;
+      })
+    );
+    
+    // 初始化开启5个请求
+    runList.slice(0, 5).forEach((item) => item.resolver());
 
     return results;
   };
-
