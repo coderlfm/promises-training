@@ -5,5 +5,21 @@ type Context = {
 };
 
 export default ({ fetchFirstData, fetchSecondData, setData }: Context) => {
-  return async (input: string) => {};
+  let runid = 0;
+
+  return async (input: string) => {
+    runid++;
+    
+    const currentId = runid;
+
+    const first = await fetchFirstData(input);
+
+    if (runid !== currentId) return;
+
+    const second = await fetchSecondData(first);
+
+    if (runid !== currentId) return;
+
+    setData(second);
+  };
 };
